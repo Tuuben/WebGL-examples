@@ -2,7 +2,7 @@
 
 Simple examples to help you get started with WebGL.
 
-## This repo contains
+## This repo contains examples of
 
 - Image processing
 
