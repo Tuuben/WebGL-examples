@@ -6,6 +6,8 @@ const ImageProcessing = () => {
     <div>
       <Link to="/">Home</Link>
       <h1>Image processing examples</h1>
+
+      <canvas id="canvas"></canvas>
     </div>
   );
 };

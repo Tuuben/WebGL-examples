@@ -1,3 +1,10 @@
 @charset "UTF-8";
 
-@import "variables", "functions", "mixins", "vendors", "base", "fonts", "typography";
+body {
+  margin: 0;
+}
+canvas {
+  width: 62vw;
+  height: 62vh;
+  display: block;
+}
