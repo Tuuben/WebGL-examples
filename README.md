@@ -6,11 +6,11 @@ Simple examples to help you get started with WebGL.
 
 - Image processing
 
-- Transformations
+- Transformations (Coming soon ...)
 
 - Loading 3D objects
 
-- Textures
+- Textures (Coming soon ...)
 
 ## Support the project
 
