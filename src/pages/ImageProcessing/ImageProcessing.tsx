@@ -1,39 +1,88 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { createShader, createProgram } from 'utils/webgl-helpers';
-import vertexShaderSource from './vertexShader.glsl';
-import fragmentShaderSource from './fragmentShader.glsl';
+import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-helpers';
+import { resizeCanvasToDisplaySize } from 'utils/webgl-fundamentals-helper';
+import vertexShaderSourcePath from './vertexShader.glsl';
+import fragmentShaderSourcePath from './fragmentShader.glsl';
 
 const ImageProcessing = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageUrl =
+    'https://images.unsplash.com/photo-1544568100-847a948585b9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1934&q=80';
 
-  /*   const vertexShaderSource = `
-    // an attribute will receive data from a buffer
-    attribute vec4 a_position;
-    
-    // all shaders have a main function
-    void main() {
-    
-      // gl_Position is a special variable a vertex shader
-      // is responsible for setting
-      gl_Position = a_position;
-    }
-  `;
+  function setRectangle(
+    gl: WebGLRenderingContext,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) {
+    const x1 = x;
+    const x2 = x + width;
+    const y1 = y;
+    const y2 = y + height;
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]),
+      gl.STATIC_DRAW
+    );
+  }
 
-  const fragmentShaderSource = `
-    // fragment shaders don't have a default precision so we need
-    // to pick one. mediump is a good default. It means "medium precision"
-    precision mediump float;
-    
-    void main() {
-      // gl_FragColor is a special variable a fragment shader
-      // is responsible for setting
-      gl_FragColor = vec4(1, 0, 0.5, 1); // return reddish-purple
-    }
-  `; */
+  const renderImage = (
+    image: HTMLImageElement,
+    gl: WebGLRenderingContext,
+    program: WebGLProgram
+  ) => {
+    const mouseLocation = gl.getUniformLocation(program, 'u_mouse');
+    gl.uniform2f(mouseLocation, 600, 600.0);
 
-  useEffect(() => {
-    console.log(canvasRef.current);
+    const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+    const texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
+      gl.STATIC_DRAW
+    );
+
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Set the parameters so we can render any size image.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // Upload the image into the texture.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+    // Turn on the texcoord attribute
+    gl.enableVertexAttribArray(texcoordLocation);
+
+    // bind the texcoord buffer.
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+
+    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+  };
+
+  const loadImage = (gl: WebGLRenderingContext, program: WebGLProgram) => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.crossOrigin = '';
+      image.src = imageUrl;
+      image.onload = () => {
+        renderImage(image, gl, program);
+        resolve();
+      };
+      image.onerror = () => {
+        reject();
+      };
+    });
+  };
+
+  const setup = async () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
@@ -46,50 +95,54 @@ const ImageProcessing = () => {
       return;
     }
 
-    console.log(vertexShaderSource);
+    // Load vertex shaders
+    const vertexShaderSource = await shaderSourceToString(vertexShaderSourcePath);
+    const fragmentShaderSource = await shaderSourceToString(fragmentShaderSourcePath);
 
     // Create & setup webgl program
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
     const program = createProgram(gl, vertexShader, fragmentShader);
 
-    const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+    /* set position buffer */
+    const positionLocation = gl.getAttribLocation(program, 'a_position');
     const positionBuffer = gl.createBuffer();
-
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-    // Setting values to the buffer
-    var positions = [0, 0, 0, 0.5, 0.7, 0];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    setRectangle(gl, -1, 1, 2, -2);
 
-    //webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    await loadImage(gl, program);
+
+    // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     // Clear the canvas
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    // lookup uniforms
+    const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+    gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
-    // Enable WebGL to se the position attrib
-    gl.enableVertexAttribArray(positionAttributeLocation);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  };
 
-    // Bind the position buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    // Point array_buffer to position attribute
-    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  // Setup once canvas has been rendered on screen
+  useEffect(() => {
+    setup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasRef]);
 
   return (
     <div>
       <Link to="/">Home</Link>
       <h1>Image processing examples</h1>
-
-      <canvas width="640" height="640" ref={canvasRef} id="canvas"></canvas>
+      <canvas width="640" height="480" ref={canvasRef} id="canvas" />
     </div>
   );
 };

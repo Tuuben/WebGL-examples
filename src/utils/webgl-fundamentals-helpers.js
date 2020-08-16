@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
  * Copyright 2012, Gregg Tavares.
  * All rights reserved.
@@ -29,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function (root, factory) {
+export default (function (root, factory) {
   // eslint-disable-line
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
@@ -40,10 +41,7 @@
     // Browser globals
     root.webglUtils = factory.call(root);
   }
-});
-
-export default (this,
-function () {
+})(this, function () {
   'use strict';
 
   const topWindow = this;
