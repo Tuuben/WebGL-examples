@@ -4,17 +4,17 @@ Simple examples to help you get started with WebGL.
 
 ## This repo contains examples of
 
-- Image processing
+- Image processing (WIP)
 
 - Transformations (Coming soon ...)
 
-- Loading 3D objects
+- Loading 3D objects (Coming soon ...)
 
 - Textures (Coming soon ...)
 
 ## Support the project
 
-<a href="https://www.buymeacoffee.com/iFTp2zC" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/iFTp2zC" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 48px !important;width: 160px !important;" ></a>
 
 ### Built with
 
