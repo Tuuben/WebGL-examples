@@ -4,7 +4,7 @@ import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-h
 import vertexShaderSourcePath from './vertexShader.glsl';
 import fragmentShaderSourcePath from './fragmentShader.glsl';
 
-const ImageProcessing = () => {
+const ImageProcessing02 = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageUrl =
     'https://images.unsplash.com/photo-1544568100-847a948585b9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1934&q=80';
@@ -107,6 +107,10 @@ const ImageProcessing = () => {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
+    /* set fragment shader time vars */
+    const timeXPosition = gl.getUniformLocation(program, 'timeX');
+    const timeYPosition = gl.getUniformLocation(program, 'timeY');
+
     setRectangle(gl, -1, 1, 2, -2);
 
     await loadImage(gl, program);
@@ -125,7 +129,18 @@ const ImageProcessing = () => {
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    let val = 0;
+    setInterval(() => {
+      gl.uniform1f(timeXPosition, Math.sin(val));
+      gl.uniform1f(timeYPosition, Math.cos(val));
+
+      val += 0.05;
+
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }, 10);
   };
 
   // Setup once canvas has been rendered on screen
@@ -137,10 +152,10 @@ const ImageProcessing = () => {
   return (
     <div>
       <Link to="/">Home</Link>
-      <h1>Image processing, grey scale example</h1>
+      <h1>Image processing, Sine wave</h1>
       <canvas width="640" height="480" ref={canvasRef} id="canvas" />
     </div>
   );
 };
 
-export default ImageProcessing;
+export default ImageProcessing02;

@@ -6,7 +6,10 @@ const Home: React.FC = () => {
     <>
       <ul>
         <li>
-          <Link to="image-processing">Image processing</Link>
+          <Link to="image-processing">Image processing - Grey scale example</Link>
+        </li>
+        <li>
+          <Link to="image-processing-02">Image processing - 02</Link>
         </li>
       </ul>
     </>
