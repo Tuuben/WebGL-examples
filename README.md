@@ -21,7 +21,3 @@ React
 ### Based on and inspired by
 
 [WebGL Fundamentals](https://webglfundamentals.org/)
-
-## Support the project
-
-<a href="https://www.buymeacoffee.com/iFTp2zC" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 48px !important;width: 160px !important;" ></a>
