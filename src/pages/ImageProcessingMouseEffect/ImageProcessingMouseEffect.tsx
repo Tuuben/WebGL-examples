@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-helpers';
-import dog from 'assets/images/dog.jpeg';
-import dogMap from 'assets/images/dog-map.jpg';
+import mountainSrc from 'assets/images/mountains.jpeg';
+import mountainMapSrc from 'assets/images/mountains-map.jpg';
 import vertexShaderSourcePath from './vertexShader.glsl';
 import fragmentShaderSourcePath from './fragmentShader.glsl';
 
@@ -117,8 +117,8 @@ const ImageProcessingMouseEffect = () => {
       gl.STATIC_DRAW
     );
 
-    const image01 = await loadImage(gl, dog);
-    const image02 = await loadImage(gl, dogMap);
+    const image01 = await loadImage(gl, mountainSrc);
+    const image02 = await loadImage(gl, mountainMapSrc);
 
     // Turn on the texcoord attribute
     gl.enableVertexAttribArray(texcoordLocation);
