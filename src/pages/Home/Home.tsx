@@ -9,7 +9,10 @@ const Home: React.FC = () => {
           <Link to="image-processing">Image processing - Grey scale example</Link>
         </li>
         <li>
-          <Link to="image-processing-02">Image processing - 02</Link>
+          <Link to="image-processing-sine-wave">Image processing - Sine wave</Link>
+        </li>
+        <li>
+          <Link to="image-processing-mouse-effect">Image processing - Mouse effect</Link>
         </li>
       </ul>
     </>

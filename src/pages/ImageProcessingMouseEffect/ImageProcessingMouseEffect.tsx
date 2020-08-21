@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-helpers';
+import dog from 'assets/images/dog.jpeg';
+import dogMap from 'assets/images/dog-map.jpg';
 import vertexShaderSourcePath from './vertexShader.glsl';
 import fragmentShaderSourcePath from './fragmentShader.glsl';
 
-const ImageProcessing02 = () => {
+const ImageProcessingMouseEffect = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageUrl =
-    'https://images.unsplash.com/photo-1544568100-847a948585b9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1934&q=80';
 
   function setRectangle(
     gl: WebGLRenderingContext,
@@ -27,20 +27,7 @@ const ImageProcessing02 = () => {
     );
   }
 
-  const renderImage = (
-    image: HTMLImageElement,
-    gl: WebGLRenderingContext,
-    program: WebGLProgram
-  ) => {
-    const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
-    const texcoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
-      gl.STATIC_DRAW
-    );
-
+  const renderImage = (image: HTMLImageElement, gl: WebGLRenderingContext) => {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -53,24 +40,17 @@ const ImageProcessing02 = () => {
     // Upload the image into the texture.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-    // Turn on the texcoord attribute
-    gl.enableVertexAttribArray(texcoordLocation);
-
-    // bind the texcoord buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-
-    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+    return texture;
   };
 
-  const loadImage = (gl: WebGLRenderingContext, program: WebGLProgram) => {
+  const loadImage = (gl: WebGLRenderingContext, src: string): Promise<WebGLTexture | null> => {
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.crossOrigin = '';
-      image.src = imageUrl;
+      image.src = src;
       image.onload = () => {
-        renderImage(image, gl, program);
-        resolve();
+        const texture = renderImage(image, gl);
+        resolve(texture);
       };
       image.onerror = () => {
         reject();
@@ -84,6 +64,21 @@ const ImageProcessing02 = () => {
     if (!canvas) {
       return;
     }
+
+    // Setup canvas mouse position
+    let mousePos = { x: 0, y: 0 };
+    canvas.onmousemove = (mouseEvent: MouseEvent) => {
+      const getMousePos = (c: HTMLCanvasElement, event: MouseEvent) => {
+        const rect = c.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+      };
+
+      const mp = getMousePos(canvas, mouseEvent);
+      mousePos = { x: mp.x / canvas.width, y: mp.y / canvas.height };
+    };
 
     const gl = canvas.getContext('webgl');
 
@@ -108,12 +103,31 @@ const ImageProcessing02 = () => {
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     /* set fragment shader time vars */
-    const timeXPosition = gl.getUniformLocation(program, 'timeX');
-    const timeYPosition = gl.getUniformLocation(program, 'timeY');
+    const mouseXPosition = gl.getUniformLocation(program, 'mouseX');
+    const mouseYPosition = gl.getUniformLocation(program, 'mouseY');
 
     setRectangle(gl, -1, 1, 2, -2);
 
-    await loadImage(gl, program);
+    const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+    const texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
+      gl.STATIC_DRAW
+    );
+
+    const image01 = await loadImage(gl, dog);
+    const image02 = await loadImage(gl, dogMap);
+
+    // Turn on the texcoord attribute
+    gl.enableVertexAttribArray(texcoordLocation);
+
+    // bind the texcoord buffer.
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+
+    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -129,12 +143,22 @@ const ImageProcessing02 = () => {
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
-    let val = 0;
-    setInterval(() => {
-      gl.uniform1f(timeXPosition, Math.sin(val));
-      gl.uniform1f(timeYPosition, Math.cos(val));
+    // link textures to right pos
+    const uImageLocation = gl.getUniformLocation(program, 'u_image0');
+    const uMapImageLocation = gl.getUniformLocation(program, 'u_image1');
 
-      val += 0.05;
+    gl.uniform1i(uImageLocation, 0);
+    gl.uniform1i(uMapImageLocation, 1);
+
+    // Bind textures
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, image01);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, image02);
+
+    setInterval(() => {
+      gl.uniform1f(mouseXPosition, mousePos.x);
+      gl.uniform1f(mouseYPosition, mousePos.y);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -152,10 +176,10 @@ const ImageProcessing02 = () => {
   return (
     <div>
       <Link to="/">Home</Link>
-      <h1>Image processing, Sine wave</h1>
-      <canvas width="640" height="480" ref={canvasRef} id="canvas" />
+      <h1>Image processing - Mouse effect</h1>
+      <canvas width="640" height="640" ref={canvasRef} id="canvas" />
     </div>
   );
 };
 
-export default ImageProcessing02;
+export default ImageProcessingMouseEffect;

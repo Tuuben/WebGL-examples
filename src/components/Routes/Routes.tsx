@@ -4,7 +4,8 @@ import PageNotFound from 'pages/PageNotFound/PageNotFound';
 import React from 'react';
 import { HashRouter, Route, Switch } from 'react-router-dom';
 import ImageProcessing from 'pages/ImageProcessing/ImageProcessing';
-import ImageProcessing02 from 'pages/ImageProcessing02/ImageProcessing02';
+import ImageProcessingSineWave from 'pages/ImageProcessingSineWave/ImageProcessingSineWave';
+import ImageProcessingMouseEffect from 'pages/ImageProcessingMouseEffect/ImageProcessingMouseEffect';
 
 const Routes: React.FC = () => (
   <HashRouter>
@@ -12,7 +13,8 @@ const Routes: React.FC = () => (
       <Switch>
         <Route component={Home} exact path="/" />
         <Route component={ImageProcessing} exact path="/image-processing" />
-        <Route component={ImageProcessing02} exact path="/image-processing-02" />
+        <Route component={ImageProcessingSineWave} exact path="/image-processing-sine-wave" />
+        <Route component={ImageProcessingMouseEffect} exact path="/image-processing-mouse-effect" />
         <Route component={PageNotFound} />
       </Switch>
     </Layout>
