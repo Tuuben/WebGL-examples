@@ -1,6 +1,6 @@
 # WebGL Examples
 
-Simple examples to help you get started with WebGL.
+Examples to help you add WebGL effects or get started creating your own.
 
 ## This repo contains examples of
 
