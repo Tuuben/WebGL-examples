@@ -16,7 +16,8 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
-    'plugin:compat/recommended',
+    // Ignore IE 11 compatability
+    //'plugin:compat/recommended',
     'plugin:jsx-a11y/recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
@@ -25,19 +26,12 @@ module.exports = {
     'prettier/@typescript-eslint',
     'prettier/react',
   ],
-  ignorePatterns: ['build', 'coverage', 'node_modules', 'serviceWorker.ts'],
+  ignorePatterns: ['build', 'coverage', 'scripts', 'config', 'node_modules', 'serviceWorker.ts'],
   overrides: [
     {
       files: ['**/*.ts?(x)'],
       rules: {
         'react/prop-types': 'off',
-        'spaced-comment': [
-          'error',
-          'always',
-          {
-            markers: ['/'],
-          },
-        ],
       },
     },
   ],

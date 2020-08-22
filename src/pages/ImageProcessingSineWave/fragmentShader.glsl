@@ -7,8 +7,8 @@ varying vec2 v_texCoord;
 uniform float dX, dY;
 
 vec2 Sine( vec2 point ) {
-    float x = sin( 10.0 * point.y + 1.0 * point.x * dX ) * 0.025;
-    float y = sin( 5.0 * point.x + 1.0 * point.y * dY ) * 0.025;
+    float x = sin( 10.0 * point.y + 1.0 * point.x * dX ) * 0.01;
+    float y = sin( 5.0 * point.x + 1.0 * point.y * dY ) * 0.01;
     return vec2(point.x + x, point.y + y );
 }
 

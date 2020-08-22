@@ -1,24 +1,38 @@
-import React, { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { createShader, createProgram, shaderSourceToString } from "utils/webgl-helpers";
-import vertexShaderSourcePath from "./vertexShader.glsl";
-import fragmentShaderSourcePath from "./fragmentShader.glsl";
+import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-helpers';
+import vertexShaderSourcePath from './vertexShader.glsl';
+import fragmentShaderSourcePath from './fragmentShader.glsl';
 
 const ImageProcessingSineWave = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageUrl =
-    "https://images.unsplash.com/photo-1592838890225-2c052fa0cf34?ixlib=rb-1.2.1&auto=format&fit=crop&w=2100&q=80";
+    'https://images.unsplash.com/photo-1592838890225-2c052fa0cf34?ixlib=rb-1.2.1&auto=format&fit=crop&w=2100&q=80';
 
-  function setRectangle(gl: WebGLRenderingContext, x: number, y: number, width: number, height: number) {
+  function setRectangle(
+    gl: WebGLRenderingContext,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) {
     const x1 = x;
     const x2 = x + width;
     const y1 = y;
     const y2 = y + height;
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]),
+      gl.STATIC_DRAW
+    );
   }
 
-  const renderImage = (image: HTMLImageElement, gl: WebGLRenderingContext, program: WebGLProgram) => {
-    const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
+  const renderImage = (
+    image: HTMLImageElement,
+    gl: WebGLRenderingContext,
+    program: WebGLProgram
+  ) => {
+    const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
     const texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(
@@ -52,7 +66,7 @@ const ImageProcessingSineWave = () => {
   const loadImage = (gl: WebGLRenderingContext, program: WebGLProgram) => {
     return new Promise((resolve, reject) => {
       const image = new Image();
-      image.crossOrigin = "";
+      image.crossOrigin = '';
       image.src = imageUrl;
       image.onload = () => {
         renderImage(image, gl, program);
@@ -71,7 +85,7 @@ const ImageProcessingSineWave = () => {
       return;
     }
 
-    const gl = canvas.getContext("webgl");
+    const gl = canvas.getContext('webgl');
 
     if (!gl) {
       return;
@@ -87,15 +101,15 @@ const ImageProcessingSineWave = () => {
     const program = createProgram(gl, vertexShader, fragmentShader);
 
     /* set position buffer */
-    const positionLocation = gl.getAttribLocation(program, "a_position");
+    const positionLocation = gl.getAttribLocation(program, 'a_position');
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     /* Get delta positions */
-    const dXPosition = gl.getUniformLocation(program, "dX");
-    const dYPosition = gl.getUniformLocation(program, "dY");
+    const dXPosition = gl.getUniformLocation(program, 'dX');
+    const dYPosition = gl.getUniformLocation(program, 'dY');
 
     setRectangle(gl, -1, 1, 2, -2);
 
@@ -109,7 +123,7 @@ const ImageProcessingSineWave = () => {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // lookup uniforms
-    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
     gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 
     // Tell it to use our program (pair of shaders)

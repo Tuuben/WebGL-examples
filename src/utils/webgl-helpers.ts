@@ -45,6 +45,7 @@ export const createProgram = (
 };
 
 export const shaderSourceToString = async (shaderSourcePath: string): Promise<string> => {
+  /* eslint-disable-line */
   const res = await fetch(shaderSourcePath);
   const text = await res.text();
   return text;
