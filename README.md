@@ -2,7 +2,7 @@
 
 Examples to help you add WebGL effects or get started creating your own.
 
-[Check it out here](https://webglexamples-d27e2.web.app)
+[Check it out here](https://web-gl-examples.vercel.app)
 
 ## This repo contains examples of
 
