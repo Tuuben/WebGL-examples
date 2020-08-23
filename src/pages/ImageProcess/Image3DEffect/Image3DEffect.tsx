@@ -1,6 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-helpers';
+import {
+  createShader,
+  createProgram,
+  shaderSourceToString,
+  setRectangle,
+} from 'utils/webgl-helpers';
 import mountainSrc from 'assets/images/mountains.jpeg';
 import mountainMapSrc from 'assets/images/mountains-map.jpg';
 import vertexShaderSourcePath from './vertexShader.glsl';
@@ -8,24 +13,6 @@ import fragmentShaderSourcePath from './fragmentShader.glsl';
 
 const Image3DEffect = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  function setRectangle(
-    gl: WebGLRenderingContext,
-    x: number,
-    y: number,
-    width: number,
-    height: number
-  ) {
-    const x1 = x;
-    const x2 = x + width;
-    const y1 = y;
-    const y2 = y + height;
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]),
-      gl.STATIC_DRAW
-    );
-  }
 
   const renderImage = (image: HTMLImageElement, gl: WebGLRenderingContext) => {
     const texture = gl.createTexture();
@@ -86,14 +73,7 @@ const Image3DEffect = () => {
       return;
     }
 
-    // Load vertex shaders
-    const vertexShaderSource = await shaderSourceToString(vertexShaderSourcePath);
-    const fragmentShaderSource = await shaderSourceToString(fragmentShaderSourcePath);
-
-    // Create & setup webgl program
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-    const program = createProgram(gl, vertexShader, fragmentShader);
+    const program = await createProgram(gl, vertexShaderSourcePath, fragmentShaderSourcePath);
 
     /* set position buffer */
     const positionLocation = gl.getAttribLocation(program, 'a_position');
@@ -135,10 +115,6 @@ const Image3DEffect = () => {
     // Clear the canvas
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
-    // lookup uniforms
-    const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
-    gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
