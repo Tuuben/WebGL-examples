@@ -4,7 +4,7 @@ import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-h
 import vertexShaderSourcePath from './vertexShader.glsl';
 import fragmentShaderSourcePath from './fragmentShader.glsl';
 
-const ImageProcessing = () => {
+const ImageGreyScale = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageUrl =
     'https://images.unsplash.com/photo-1544568100-847a948585b9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1934&q=80';
@@ -137,10 +137,10 @@ const ImageProcessing = () => {
   return (
     <div>
       <Link to="/">Home</Link>
-      <h1>Image processing, grey scale example</h1>
+      <h1>Image processing - Grey scale</h1>
       <canvas width="640" height="480" ref={canvasRef} id="canvas" />
     </div>
   );
 };
 
-export default ImageProcessing;
+export default ImageGreyScale;

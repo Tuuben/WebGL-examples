@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createShader, createProgram, shaderSourceToString } from 'utils/webgl-helpers';
+import mountainSrc from 'assets/images/mountains.jpeg';
+import mountainMapSrc from 'assets/images/mountains-map.jpg';
 import vertexShaderSourcePath from './vertexShader.glsl';
 import fragmentShaderSourcePath from './fragmentShader.glsl';
 
-const ImageProcessingSineWave = () => {
+const Image3DEffect = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageUrl =
-    'https://images.unsplash.com/photo-1592838890225-2c052fa0cf34?ixlib=rb-1.2.1&auto=format&fit=crop&w=2100&q=80';
 
   function setRectangle(
     gl: WebGLRenderingContext,
@@ -27,20 +27,7 @@ const ImageProcessingSineWave = () => {
     );
   }
 
-  const renderImage = (
-    image: HTMLImageElement,
-    gl: WebGLRenderingContext,
-    program: WebGLProgram
-  ) => {
-    const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
-    const texcoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
-      gl.STATIC_DRAW
-    );
-
+  const renderImage = (image: HTMLImageElement, gl: WebGLRenderingContext) => {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -53,24 +40,17 @@ const ImageProcessingSineWave = () => {
     // Upload the image into the texture.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-    // Turn on the texcoord attribute
-    gl.enableVertexAttribArray(texcoordLocation);
-
-    // bind the texcoord buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-
-    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+    return texture;
   };
 
-  const loadImage = (gl: WebGLRenderingContext, program: WebGLProgram) => {
+  const loadImage = (gl: WebGLRenderingContext, src: string): Promise<WebGLTexture | null> => {
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.crossOrigin = '';
-      image.src = imageUrl;
+      image.src = src;
       image.onload = () => {
-        renderImage(image, gl, program);
-        resolve();
+        const texture = renderImage(image, gl);
+        resolve(texture);
       };
       image.onerror = () => {
         reject();
@@ -84,6 +64,21 @@ const ImageProcessingSineWave = () => {
     if (!canvas) {
       return;
     }
+
+    // Setup canvas mouse position
+    let mousePos = { x: 0, y: 0 };
+    canvas.onmousemove = (mouseEvent: MouseEvent) => {
+      const getMousePos = (c: HTMLCanvasElement, event: MouseEvent) => {
+        const rect = c.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+      };
+
+      const mp = getMousePos(canvas, mouseEvent);
+      mousePos = { x: mp.x / canvas.width, y: mp.y / canvas.height };
+    };
 
     const gl = canvas.getContext('webgl');
 
@@ -107,13 +102,32 @@ const ImageProcessingSineWave = () => {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-    /* Get delta positions */
-    const dXPosition = gl.getUniformLocation(program, 'dX');
-    const dYPosition = gl.getUniformLocation(program, 'dY');
+    /* set fragment shader time vars */
+    const mouseXPosition = gl.getUniformLocation(program, 'mouseX');
+    const mouseYPosition = gl.getUniformLocation(program, 'mouseY');
 
     setRectangle(gl, -1, 1, 2, -2);
 
-    await loadImage(gl, program);
+    const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+    const texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
+      gl.STATIC_DRAW
+    );
+
+    const image01 = await loadImage(gl, mountainSrc);
+    const image02 = await loadImage(gl, mountainMapSrc);
+
+    // Turn on the texcoord attribute
+    gl.enableVertexAttribArray(texcoordLocation);
+
+    // bind the texcoord buffer.
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+
+    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -129,12 +143,22 @@ const ImageProcessingSineWave = () => {
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
-    let val = 0;
-    setInterval(() => {
-      gl.uniform1f(dXPosition, Math.sin(val));
-      gl.uniform1f(dYPosition, Math.cos(val));
+    // link textures to right pos
+    const uImageLocation = gl.getUniformLocation(program, 'u_image0');
+    const uMapImageLocation = gl.getUniformLocation(program, 'u_image1');
 
-      val += 0.05;
+    gl.uniform1i(uImageLocation, 0);
+    gl.uniform1i(uMapImageLocation, 1);
+
+    // Bind textures
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, image01);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, image02);
+
+    setInterval(() => {
+      gl.uniform1f(mouseXPosition, mousePos.x);
+      gl.uniform1f(mouseYPosition, mousePos.y);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -152,10 +176,10 @@ const ImageProcessingSineWave = () => {
   return (
     <div>
       <Link to="/">Home</Link>
-      <h1>Image processing - Sine wave</h1>
-      <canvas width="640" height="480" ref={canvasRef} id="canvas" />
+      <h1>Image processing - 3D effect</h1>
+      <canvas width="640" height="640" ref={canvasRef} id="canvas" />
     </div>
   );
 };
 
-export default ImageProcessingSineWave;
+export default Image3DEffect;

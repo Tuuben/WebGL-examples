@@ -6,13 +6,13 @@ const Home: React.FC = () => {
     <>
       <ul>
         <li>
-          <Link to="image-processing">Image processing - Grey scale example</Link>
+          <Link to="image/greyscale">Image processing - Grey scale</Link>
         </li>
         <li>
-          <Link to="image-processing-sine-wave">Image processing - Sine wave</Link>
+          <Link to="image/sine">Image processing - Sine wave</Link>
         </li>
         <li>
-          <Link to="image-processing-mouse-effect">Image processing - Mouse effect</Link>
+          <Link to="image/3deffect">Image processing - 3D effect</Link>
         </li>
       </ul>
     </>
