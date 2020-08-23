@@ -17,3 +17,8 @@ Examples to help you add WebGL effects or get started creating your own.
 ### Built with
 
 React
+
+### Resources
+
+[WebGL Fundamentals](https://webglfundamentals.org/)
+[Book of Shaders](https://thebookofshaders.com/)
