@@ -1,4 +1,4 @@
-# WebGL Shader Examples
+# Simple WebGL Shader Examples
 
 Examples of some simple WebGL shaders
 
